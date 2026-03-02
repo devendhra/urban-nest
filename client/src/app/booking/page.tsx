@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { toast } from 'sonner';
 
 const Booking = () => {
   const [name, setName] = useState('');
@@ -11,9 +12,23 @@ const Booking = () => {
   const [expiryDate, setExpiryDate] = useState('');
   const [ccv, setCcv] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [propertyPrice, setPropertyPrice] = useState<number | null>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
   const id = searchParams.get('id');
+
+  useEffect(() => {
+    const fetchPropertyPrice = async () => {
+      if (!id) return;
+      try {
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/properties/${id}`);
+        setPropertyPrice(response.data.price);
+      } catch (error) {
+        console.error('Error fetching property price:', error);
+      }
+    };
+    fetchPropertyPrice();
+  }, [id]);
 
   const validateName = (name: string) => /^[A-Za-z\s]+$/.test(name);
   const validateEmail = (email: string) => /\S+@\S+\.\S+/.test(email);
@@ -43,41 +58,45 @@ const Booking = () => {
 
   const handlePayment = async () => {
     if (!validateName(name)) {
-      alert('Please enter a valid name.');
+      toast.error('Please enter a valid name.');
       return;
     }
     if (!validateEmail(email)) {
-      alert('Please enter a valid email address.');
+      toast.error('Please enter a valid email address.');
       return;
     }
     if (!validateCardNumber(accountNumber)) {
-      alert('Please enter a valid 16-digit card number.');
+      toast.error('Please enter a valid 16-digit card number.');
       return;
     }
     if (!validateExpiryDate(expiryDate)) {
-      alert('Please enter a valid expiry date in MM/YY format.');
+      toast.error('Please enter a valid expiry date in MM/YY format.');
       return;
     }
     if (!validateCcv(ccv)) {
-      alert('Please enter a valid 3-digit CCV.');
+      toast.error('Please enter a valid 3-digit CCV.');
+      return;
+    }
+    if (propertyPrice === null) {
+      toast.error('Property details not loaded fully yet.');
       return;
     }
 
     setIsLoading(true);
 
     try {
-      const paymentResponse = await axios.post(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/booking/payment`, {
-        amount: 100000, // Fixed deposit amount
+      const paymentResponse = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/booking/payment`, {
+        amount: propertyPrice,
       });
 
       if (paymentResponse.status === 200) {
-        const confirmationResponse = await axios.post(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/booking/confirmation`, {
+        const confirmationResponse = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/booking/confirmation`, {
           email,
           bookingDetails: 'Booking details here...',
         });
 
         if (confirmationResponse.status === 200) {
-          alert('Booking confirmed and email sent!');
+          toast.success('Booking confirmed and email sent!');
           if (id) {
             router.push(`/property/${id}`);
           } else {
@@ -87,7 +106,7 @@ const Booking = () => {
       }
     } catch (error) {
       console.error('Error processing booking:', error);
-      alert('There was an error processing your booking.');
+      toast.error('There was an error processing your booking.');
     } finally {
       setIsLoading(false);
     }
@@ -200,7 +219,7 @@ const Booking = () => {
                 <input
                   type="text"
                   id="amount"
-                  value="₹1,00,000"
+                  value={propertyPrice !== null ? `₹${propertyPrice.toLocaleString()}` : "Loading..."}
                   readOnly
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed"
                 />
@@ -240,7 +259,7 @@ const Booking = () => {
 
               <button
                 onClick={handlePayment}
-                disabled={isLoading || !name || !accountNumber || !expiryDate || !ccv || !email}
+                disabled={isLoading || propertyPrice === null || !name || !accountNumber || !expiryDate || !ccv || !email}
                 className="w-full bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:from-gray-400 disabled:to-gray-500 text-white py-4 px-6 rounded-lg font-medium text-lg transition-all duration-300 transform hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed shadow-lg"
               >
                 {isLoading ? (
@@ -249,7 +268,7 @@ const Booking = () => {
                     Processing...
                   </div>
                 ) : (
-                  'Pay ₹1,00,000'
+                  `Pay ₹${propertyPrice !== null ? propertyPrice.toLocaleString() : '...'}`
                 )}
               </button>
 

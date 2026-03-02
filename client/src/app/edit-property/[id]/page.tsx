@@ -59,7 +59,7 @@ const EditProperty = () => {
           return;
         }
 
-        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/properties/${id}`, {
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/properties/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setFormData(response.data);
@@ -110,7 +110,7 @@ const EditProperty = () => {
     }
 
     if (formErrors.length > 0) {
-      alert(formErrors.join('\n'));
+      toast.error(formErrors.join('\n'));
       return false;
     }
 
@@ -131,15 +131,15 @@ const EditProperty = () => {
         return;
       }
 
-      await axios.put(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/properties/${id}`, formData, {
+      await axios.put(`${process.env.NEXT_PUBLIC_API_URL}/api/properties/${id}`, formData, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      
-      alert('Property updated successfully!');
-      router.push('/admin');
+
+      toast.success('Property updated successfully!');
+      router.push('/dashboard');
     } catch (error) {
       console.error('Error updating property:', error);
-      alert('Failed to update property. Please try again.');
+      toast.error('Failed to update property. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -182,7 +182,7 @@ const EditProperty = () => {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-white rounded-lg shadow-sm p-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-8">Edit Property</h1>
-          
+
           <form onSubmit={handleSubmit} className="space-y-6">
             {formFields.map(({ label, name, type, placeholder, required }) => (
               <div key={name} className={type === 'textarea' ? 'col-span-2' : ''}>
@@ -234,7 +234,7 @@ const EditProperty = () => {
                   {formData.images.map((image, index) => (
                     <div key={index} className="relative">
                       <img
-                        src={image.startsWith('blob:') ? image : `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}${image}`}
+                        src={image.startsWith('blob:') ? image : `${process.env.NEXT_PUBLIC_API_URL}${image}`}
                         alt={`Property image ${index + 1}`}
                         className="w-full h-24 object-cover rounded-lg"
                       />

@@ -110,13 +110,13 @@ const CreateProperty = () => {
         return;
       }
 
-      await axios.post(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/properties`, formData, {
+      await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/properties`, formData, {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'multipart/form-data',
         },
       });
-      
+
       toast.success('Property created successfully!');
       router.push('/admin');
     } catch (error) {
@@ -137,7 +137,7 @@ const CreateProperty = () => {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-white rounded-lg shadow-sm p-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-8">Create Property</h1>
-          
+
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Property Name */}
             <div>
@@ -278,7 +278,7 @@ const CreateProperty = () => {
             {/* Address Fields */}
             <div className="space-y-6">
               <h3 className="text-lg font-medium text-gray-900">Address Information</h3>
-              
+
               <div>
                 <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-2">
                   Address *
@@ -347,7 +347,7 @@ const CreateProperty = () => {
             {/* Contact Information */}
             <div className="space-y-6">
               <h3 className="text-lg font-medium text-gray-900">Contact Information</h3>
-              
+
               <div>
                 <label htmlFor="contactName" className="block text-sm font-medium text-gray-700 mb-2">
                   Contact Name *
@@ -437,9 +437,14 @@ const CreateProperty = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white py-3 px-6 rounded-lg font-medium transition-colors"
+                className="flex-1 flex items-center justify-center bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed text-white py-3 px-6 rounded-lg font-medium transition-colors"
               >
-                {loading ? 'Creating Property...' : 'Create Property'}
+                {loading ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                    Creating Property...
+                  </>
+                ) : 'Create Property'}
               </button>
               <button
                 type="button"

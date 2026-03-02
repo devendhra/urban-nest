@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import Link from 'next/link';
 import { FaSearch } from 'react-icons/fa';
+import { motion } from 'framer-motion';
 
 interface Property {
   _id: string;
@@ -24,9 +25,9 @@ const PropertyCard = ({ property }: { property: Property }) => {
       <div className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow cursor-pointer">
         {property.images && property.images.length > 0 ? (
           <div className="relative h-48">
-            <img 
-              src={`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}${property.images[0]}`}
-              alt={property.name} 
+            <img
+              src={`${process.env.NEXT_PUBLIC_API_URL}${property.images[0]}`}
+              alt={property.name}
               className="w-full h-full object-cover"
             />
             <div className="absolute top-2 right-2 bg-black bg-opacity-70 text-white px-2 py-1 rounded text-sm">
@@ -45,11 +46,10 @@ const PropertyCard = ({ property }: { property: Property }) => {
           <p className="text-gray-600 mb-2">
             {property.address}, {property.city}, {property.state}, {property.country}
           </p>
-          <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
-            property.status === 'available' 
-              ? 'bg-green-100 text-green-800' 
-              : 'bg-red-100 text-red-800'
-          }`}>
+          <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${property.status === 'available'
+            ? 'bg-green-100 text-green-800'
+            : 'bg-red-100 text-red-800'
+            }`}>
             {property.status}
           </span>
         </div>
@@ -67,7 +67,7 @@ export default function Properties() {
   useEffect(() => {
     const fetchProperties = async () => {
       try {
-        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/properties`);
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/properties`);
         setProperties(response.data);
         setFilteredProperties(response.data);
       } catch (error) {
@@ -107,12 +107,12 @@ export default function Properties() {
       <header className="bg-white shadow-md">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center">
-            <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-xl">
-              UN
+            <div className="w-12 h-12 relative flex items-center justify-center">
+              <img src="/logo.png" alt="Urban Nest Logo" className="object-contain w-full h-full drop-shadow-md" />
             </div>
-            <span className="ml-2 text-xl font-bold text-gray-800">Urban Nest</span>
+            <span className="ml-3 text-2xl font-extrabold text-transparent bg-clip-text bg-linear-to-r from-blue-700 to-indigo-900 tracking-tight">Urban Nest</span>
           </Link>
-          
+
           <nav className="hidden md:flex space-x-8">
             <Link href="/" className="text-gray-700 hover:text-blue-600 transition-colors">
               Home
@@ -174,17 +174,39 @@ export default function Properties() {
             </div>
 
             {filteredProperties.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <motion.div
+                initial="hidden"
+                animate="visible"
+                variants={{
+                  hidden: { opacity: 0 },
+                  visible: {
+                    opacity: 1,
+                    transition: {
+                      staggerChildren: 0.1
+                    }
+                  }
+                }}
+                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+              >
                 {filteredProperties.map(property => (
-                  <PropertyCard key={property._id} property={property} />
+                  <motion.div
+                    key={property._id}
+                    variants={{
+                      hidden: { opacity: 0, y: 20 },
+                      visible: { opacity: 1, y: 0 }
+                    }}
+                    transition={{ duration: 0.4 }}
+                  >
+                    <PropertyCard property={property} />
+                  </motion.div>
                 ))}
-              </div>
+              </motion.div>
             ) : (
               <div className="text-center py-20">
                 <div className="text-6xl text-gray-300 mb-4">🏠</div>
                 <h3 className="text-2xl font-bold text-gray-600 mb-2">No Properties Found</h3>
                 <p className="text-gray-500 mb-6">
-                  {searchQuery 
+                  {searchQuery
                     ? `No properties match your search for "${searchQuery}"`
                     : "No properties are currently available"
                   }
@@ -207,8 +229,8 @@ export default function Properties() {
       <footer className="bg-gray-800 text-white py-12">
         <div className="container mx-auto px-4 text-center">
           <div className="mb-6">
-            <div className="w-16 h-16 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-2xl mx-auto mb-4">
-              UN
+            <div className="w-16 h-16 relative mx-auto mb-4">
+              <img src="/logo.png" alt="Urban Nest Logo" className="object-contain w-full h-full drop-shadow-lg" />
             </div>
             <h3 className="text-xl font-bold">Urban Nest</h3>
           </div>

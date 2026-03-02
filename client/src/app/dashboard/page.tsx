@@ -27,7 +27,7 @@ export default function Dashboard() {
           router.push('/login');
           return;
         }
-        const response = await axios.get('http://localhost:5000/api/dashboard', {
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/dashboard`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setUser(response.data.user);
@@ -71,12 +71,12 @@ export default function Dashboard() {
       <header className="bg-white shadow-md">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center">
-            <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-xl">
-              UN
+            <div className="w-12 h-12 relative flex items-center justify-center">
+              <img src="/logo.png" alt="Urban Nest Logo" className="object-contain w-full h-full drop-shadow-md" />
             </div>
-            <span className="ml-2 text-xl font-bold text-gray-800">Urban Nest</span>
+            <span className="ml-3 text-2xl font-extrabold text-transparent bg-clip-text bg-linear-to-r from-blue-700 to-indigo-900 tracking-tight">Urban Nest</span>
           </Link>
-          
+
           <nav className="hidden md:flex space-x-8">
             <Link href="/" className="text-gray-700 hover:text-blue-600 transition-colors">
               Home
@@ -94,19 +94,19 @@ export default function Dashboard() {
 
           {user && (
             <div className="relative">
-              <FaUserCircle 
-                onClick={toggleDropdown} 
-                className="w-8 h-8 text-blue-600 cursor-pointer hover:text-blue-700 transition-colors" 
+              <FaUserCircle
+                onClick={toggleDropdown}
+                className="w-8 h-8 text-blue-600 cursor-pointer hover:text-blue-700 transition-colors"
               />
               {dropdownVisible && (
                 <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-10">
-                  <Link 
-                    href="/update-profile" 
+                  <Link
+                    href="/update-profile"
                     className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors"
                   >
                     <FaUserEdit className="mr-2" /> Update Profile
                   </Link>
-                  <button 
+                  <button
                     onClick={handleLogout}
                     className="flex items-center w-full px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors"
                   >
@@ -141,21 +141,9 @@ export default function Dashboard() {
       {/* Quick Actions */}
       <div className="container mx-auto px-4 py-8">
         <h2 className="text-2xl font-bold text-gray-800 mb-6">Quick Actions</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Link 
-            href="/create-property"
-            className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow border-l-4 border-blue-500"
-          >
-            <div className="flex items-center">
-              <FaPlus className="text-blue-500 text-2xl mr-4" />
-              <div>
-                <h3 className="font-semibold text-gray-800">Add Property</h3>
-                <p className="text-gray-600 text-sm">List a new property</p>
-              </div>
-            </div>
-          </Link>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
-          <Link 
+          <Link
             href="/properties"
             className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow border-l-4 border-green-500"
           >
@@ -168,7 +156,7 @@ export default function Dashboard() {
             </div>
           </Link>
 
-          <Link 
+          <Link
             href="/update-profile"
             className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow border-l-4 border-purple-500"
           >
@@ -181,7 +169,7 @@ export default function Dashboard() {
             </div>
           </Link>
 
-          <Link 
+          <Link
             href="/booking"
             className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow border-l-4 border-orange-500"
           >
@@ -229,7 +217,7 @@ export default function Dashboard() {
             </div>
           </div>
           <div className="mt-6">
-            <Link 
+            <Link
               href="/update-profile"
               className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
             >
@@ -243,8 +231,8 @@ export default function Dashboard() {
       <footer className="bg-gray-800 text-white py-12 mt-12">
         <div className="container mx-auto px-4 text-center">
           <div className="mb-6">
-            <div className="w-16 h-16 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-2xl mx-auto mb-4">
-              UN
+            <div className="w-16 h-16 relative mx-auto mb-4">
+              <img src="/logo.png" alt="Urban Nest Logo" className="object-contain w-full h-full drop-shadow-lg" />
             </div>
             <h3 className="text-xl font-bold">Urban Nest</h3>
           </div>

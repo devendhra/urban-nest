@@ -5,10 +5,10 @@ exports.processPayment = async (req, res) => {
   try {
     // Simulate payment processing (In reality, integrate with a payment gateway)
     const { amount } = req.body;
-    if (amount === 100000) {
+    if (typeof amount === 'number' && amount > 0) {
       res.status(200).json({ message: 'Payment processed successfully.' });
     } else {
-      throw new Error('Invalid payment amount');
+      throw new Error('Invalid payment amount. Amount must be a positive number.');
     }
   } catch (error) {
     console.error('Payment processing error:', error);
@@ -22,8 +22,7 @@ exports.sendConfirmationEmail = async (req, res) => {
 
     // Check if email credentials are configured
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-      console.log('Email credentials not configured, skipping email send');
-      return res.status(200).json({ 
+      return res.status(200).json({
         message: 'Booking confirmed successfully! Email notification will be sent separately.',
         bookingConfirmed: true,
         emailSent: false
@@ -49,7 +48,7 @@ exports.sendConfirmationEmail = async (req, res) => {
     // Send the email
     await transporter.sendMail(mailOptions);
 
-    res.status(200).json({ 
+    res.status(200).json({
       message: 'Booking confirmed and confirmation email sent successfully.',
       bookingConfirmed: true,
       emailSent: true
@@ -57,7 +56,7 @@ exports.sendConfirmationEmail = async (req, res) => {
   } catch (error) {
     console.error('Error sending confirmation email:', error);
     // Still return success for booking confirmation even if email fails
-    res.status(200).json({ 
+    res.status(200).json({
       message: 'Booking confirmed successfully! Email notification could not be sent at this time.',
       bookingConfirmed: true,
       emailSent: false,

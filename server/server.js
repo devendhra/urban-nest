@@ -6,10 +6,10 @@ const propertyRoutes = require('./routes/property');
 const userRoutes = require('./routes/userRoutes');
 const authMiddleware = require('./middleware/authMiddleware');
 const { forgotPassword } = require('./controllers/authController'); // Import the forgotPassword controller
-const resetPasswordRoutes = require('./routes/resetPasswordRoutes'); 
+const resetPasswordRoutes = require('./routes/resetPasswordRoutes');
 const contactRoutes = require('./routes/contact');
 const pdfRoutes = require('./routes/pdfRoutes'); // Import the new PDF route
-const contactOwnerRoutes = require('./routes/contactOwnerRoutes'); 
+const contactOwnerRoutes = require('./routes/contactOwnerRoutes');
 const bookingRoutes = require('./routes/booking');
 require('dotenv').config();  // Ensure .env variables are loaded
 
@@ -24,10 +24,6 @@ app.use(express.json());
 
 app.use('/uploads', express.static('uploads'));
 
-// mongoose.connect('mongodb://localhost:27017/homevision', {
-//   useNewUrlParser: true,
-//   useUnifiedTopology: true,
-// });
 
 mongoose.connect(process.env.DATABASE_URL)
   .then(() => {
@@ -53,13 +49,13 @@ app.use('/api', propertyRoutes);
 app.use('/api', userRoutes);
 app.use('/api', resetPasswordRoutes);
 app.use('/api', contactRoutes);
-app.use('/api', pdfRoutes); // Add the PDF route
+app.use('/api', pdfRoutes);
 app.use('/api', contactOwnerRoutes);
 app.use('/booking', bookingRoutes);
 
 
 // Forgot Password route
-app.post('/api/forgot-password', forgotPassword); // Add the forgot password route
+app.post('/api/forgot-password', forgotPassword);
 
 
 // Dashboard route
@@ -68,7 +64,12 @@ app.get('/api/dashboard', authMiddleware, (req, res) => {
 });
 
 
+// Vercel Serverless Function requirement
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(process.env.PORT || 5000, () => {
+    console.log(`Server running on port ${process.env.PORT || 5000}`);
+  });
+}
 
-app.listen(process.env.PORT || 5000, () => {
-  console.log(`Server running on port ${process.env.PORT || 5000}`);
-});
+// Export the app for Vercel integration
+module.exports = app;

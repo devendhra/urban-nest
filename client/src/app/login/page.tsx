@@ -34,7 +34,7 @@ export default function Login() {
       // Check if admin credentials are being used
       if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
         // Use regular API authentication for admin
-        const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/login`, {
+        const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/login`, {
           email,
           password,
         });
@@ -42,12 +42,12 @@ export default function Login() {
         localStorage.setItem('token', response.data.token);
         localStorage.setItem('userRole', 'admin');
         localStorage.setItem('userEmail', email);
-        
+
         toast.success('Welcome Admin! ', {
           duration: 3000,
           position: 'top-center',
         });
-        
+
         setTimeout(() => {
           router.push('/admin');
         }, 1000);
@@ -55,7 +55,7 @@ export default function Login() {
       }
 
       // Regular user login via API
-      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/login`, {
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/login`, {
         email,
         password,
       });
@@ -63,12 +63,12 @@ export default function Login() {
       localStorage.setItem('token', response.data.token);
       localStorage.setItem('userRole', 'user');
       localStorage.setItem('userEmail', email);
-      
+
       toast.success('Login successful! ', {
         duration: 3000,
         position: 'top-center',
       });
-      
+
       setTimeout(() => {
         router.push('/dashboard');
       }, 1000);
@@ -140,8 +140,8 @@ export default function Login() {
           </div>
 
           <div className="flex items-center justify-between">
-            <Link 
-              href="/forgot-password" 
+            <Link
+              href="/forgot-password"
               className="text-sm text-blue-600 hover:text-blue-700 transition-colors"
             >
               Forgot your password?
@@ -151,9 +151,14 @@ export default function Login() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-lg font-semibold transition-colors"
+            className="w-full flex items-center justify-center py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed text-white rounded-lg font-semibold transition-colors"
           >
-            {loading ? 'Signing in...' : 'Sign In'}
+            {loading ? (
+              <>
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                Signing in...
+              </>
+            ) : 'Sign In'}
           </button>
         </form>
 
@@ -167,8 +172,8 @@ export default function Login() {
         </div>
 
         <div className="mt-6 text-center">
-          <Link 
-            href="/" 
+          <Link
+            href="/"
             className="text-gray-500 hover:text-gray-700 text-sm transition-colors"
           >
             ← Back to Home

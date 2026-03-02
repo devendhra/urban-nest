@@ -7,11 +7,11 @@ import { useRouter } from 'next/navigation';
 import toast, { Toaster } from 'react-hot-toast';
 
 export default function Signup() {
-  const [formData, setFormData] = useState({ 
-    username: '', 
-    email: '', 
-    phone: '', 
-    password: '' 
+  const [formData, setFormData] = useState({
+    username: '',
+    email: '',
+    phone: '',
+    password: ''
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -30,16 +30,16 @@ export default function Signup() {
     setError('');
 
     try {
-      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/signup`, formData);
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/signup`, formData);
       localStorage.setItem('token', response.data.token);
       localStorage.setItem('userRole', 'user');
       localStorage.setItem('userEmail', formData.email);
-      
+
       toast.success('Account created successfully! 🎉', {
         duration: 3000,
         position: 'top-center',
       });
-      
+
       setTimeout(() => {
         router.push('/dashboard');
       }, 1000);
@@ -145,9 +145,14 @@ export default function Signup() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-lg font-semibold transition-colors"
+            className="w-full flex items-center justify-center py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed text-white rounded-lg font-semibold transition-colors"
           >
-            {loading ? 'Creating Account...' : 'Create Account'}
+            {loading ? (
+              <>
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                Creating Account...
+              </>
+            ) : 'Create Account'}
           </button>
         </form>
 
@@ -161,8 +166,8 @@ export default function Signup() {
         </div>
 
         <div className="mt-6 text-center">
-          <Link 
-            href="/" 
+          <Link
+            href="/"
             className="text-gray-500 hover:text-gray-700 text-sm transition-colors"
           >
             ← Back to Home

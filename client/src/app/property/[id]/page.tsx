@@ -4,6 +4,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
+import { toast } from 'sonner';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   FaArrowLeft,
   FaMapMarkerAlt,
@@ -17,6 +19,7 @@ import {
   FaChevronLeft,
   FaChevronRight
 } from 'react-icons/fa';
+import { Building, CheckCircle, FileText } from 'lucide-react';
 
 interface Property {
   _id: string;
@@ -33,6 +36,9 @@ interface Property {
   status: string;
   description: string;
   images: string[];
+  totalFloors?: number;
+  amenities?: string[];
+  legalDocumentation?: string;
   latitude?: number;
   longitude?: number;
   contactEmail?: string;
@@ -48,6 +54,7 @@ export default function PropertyDetails() {
   const [loading, setLoading] = useState(true);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showContactForm, setShowContactForm] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [contactForm, setContactForm] = useState({
     name: '',
     email: '',
@@ -113,13 +120,8 @@ export default function PropertyDetails() {
 
   useEffect(() => {
     const fetchProperty = async () => {
-      console.log('🔍 ENV DEBUG - NEXT_PUBLIC_API_URL:', process.env.NEXT_PUBLIC_API_URL);
-      console.log('🔍 ENV DEBUG - Fallback URL will be used:', !process.env.NEXT_PUBLIC_API_URL);
-      console.log('🔍 ENV DEBUG - Final API URL:', process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000");
-      console.log('🔍 ENV DEBUG - Property ID:', id);
-
       try {
-        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/properties/${id}`);
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/properties/${id}`);
         setProperty(response.data);
       } catch (error) {
         console.error('Error fetching property details:', error);
@@ -135,18 +137,21 @@ export default function PropertyDetails() {
 
   const handleContactSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
     try {
-      await axios.post(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/contact-owner`, {
+      await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/contact-owner`, {
         ...contactForm,
         ownerEmail: property?.contactEmail,
         propertyName: property?.name
       });
-      alert('Message sent successfully!');
+      toast.success('Message sent successfully!');
       setShowContactForm(false);
       setContactForm({ name: '', email: '', message: '' });
     } catch (error) {
       console.error('Error sending message:', error);
-      alert('Failed to send message. Please try again.');
+      toast.error('Failed to send message. Please try again.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -181,12 +186,12 @@ export default function PropertyDetails() {
       <header className="bg-white shadow-md">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center">
-            <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-xl">
-              UN
+            <div className="w-12 h-12 relative flex items-center justify-center">
+              <img src="/logo.png" alt="Urban Nest Logo" className="object-contain w-full h-full drop-shadow-md" />
             </div>
-            <span className="ml-2 text-xl font-bold text-gray-800">Urban Nest</span>
+            <span className="ml-3 text-2xl font-extrabold text-transparent bg-clip-text bg-linear-to-r from-blue-700 to-indigo-900 tracking-tight">Urban Nest</span>
           </Link>
-          
+
           <Link href="/properties" className="flex items-center text-gray-700 hover:text-blue-600 transition-colors">
             <FaArrowLeft className="mr-2" />
             Back to Properties
@@ -207,7 +212,7 @@ export default function PropertyDetails() {
                 onTouchEnd={handleTouchEnd}
               >
                 <img
-                  src={`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}${property.images[currentImageIndex]}`}
+                  src={`${process.env.NEXT_PUBLIC_API_URL}${property.images[currentImageIndex]}`}
                   alt={`${property.name} - Image ${currentImageIndex + 1}`}
                   className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
                   loading="lazy"
@@ -246,11 +251,10 @@ export default function PropertyDetails() {
                     <button
                       key={index}
                       onClick={() => setCurrentImageIndex(index)}
-                      className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full transition-all duration-200 ${
-                        index === currentImageIndex
-                          ? 'bg-white scale-125'
-                          : 'bg-white bg-opacity-50 hover:bg-opacity-75'
-                      }`}
+                      className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full transition-all duration-200 ${index === currentImageIndex
+                        ? 'bg-white scale-125'
+                        : 'bg-white bg-opacity-50 hover:bg-opacity-75'
+                        }`}
                       aria-label={`Go to image ${index + 1}`}
                     />
                   ))}
@@ -288,11 +292,10 @@ export default function PropertyDetails() {
                   <div className="text-3xl font-bold text-blue-600 mb-2">
                     ₹{property.price.toLocaleString()}
                   </div>
-                  <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
-                    property.status === 'available' 
-                      ? 'bg-green-100 text-green-800' 
-                      : 'bg-red-100 text-red-800'
-                  }`}>
+                  <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${property.status === 'available'
+                    ? 'bg-green-100 text-green-800'
+                    : 'bg-red-100 text-red-800'
+                    }`}>
                     {property.status}
                   </span>
                 </div>
@@ -325,7 +328,7 @@ export default function PropertyDetails() {
                     </div>
                   </div>
                 )}
-                {property.parking && (
+                {Math.max(0, property.parking) > 0 && (
                   <div className="flex items-center p-3 bg-gray-50 rounded-lg">
                     <FaCar className="text-blue-600 mr-3" />
                     <div>
@@ -334,13 +337,53 @@ export default function PropertyDetails() {
                     </div>
                   </div>
                 )}
+                {property.totalFloors && property.totalFloors > 0 && (
+                  <div className="flex items-center p-3 bg-gray-50 rounded-lg">
+                    <Building className="w-5 h-5 text-blue-600 mr-3" />
+                    <div>
+                      <div className="text-sm text-gray-600">Total Floors</div>
+                      <div className="font-semibold">{property.totalFloors}</div>
+                    </div>
+                  </div>
+                )}
               </div>
+
+              {/* Amenities */}
+              {property.amenities && property.amenities.length > 0 && (
+                <div className="mb-6">
+                  <h3 className="text-xl font-bold text-gray-800 mb-4">Amenities</h3>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    {property.amenities.map((amenity, index) => (
+                      <div key={index} className="flex items-center space-x-2 text-gray-700">
+                        <CheckCircle className="w-5 h-5 text-green-500 shrink-0" />
+                        <span className="font-medium">{amenity}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Description */}
               {property.description && (
                 <div>
                   <h3 className="text-xl font-bold text-gray-800 mb-3">Description</h3>
                   <p className="text-gray-600 leading-relaxed">{property.description}</p>
+                </div>
+              )}
+
+              {/* Legal Documentation */}
+              {property.legalDocumentation && (
+                <div className="mt-8 border-t pt-6">
+                  <h3 className="text-xl font-bold text-gray-800 mb-3">Documents</h3>
+                  <a
+                    href={property.legalDocumentation}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center px-4 py-2 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-lg transition-colors font-medium border border-indigo-200"
+                  >
+                    <FileText className="w-5 h-5 mr-2" />
+                    View Legal Documentation
+                  </a>
                 </div>
               )}
             </div>
@@ -350,7 +393,7 @@ export default function PropertyDetails() {
           <div className="lg:col-span-1">
             <div className="bg-white rounded-lg shadow-lg p-6 sticky top-4">
               <h3 className="text-xl font-bold text-gray-800 mb-4">Interested in this property?</h3>
-              
+
               <div className="space-y-4 mb-6">
                 <button
                   onClick={() => setShowContactForm(true)}
@@ -359,7 +402,7 @@ export default function PropertyDetails() {
                   <FaEnvelope className="mr-2" />
                   Contact Owner
                 </button>
-                
+
                 <button
                   onClick={handleBookingClick}
                   className="w-full flex items-center justify-center px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
@@ -375,7 +418,7 @@ export default function PropertyDetails() {
                     <FaPhone className="mr-2" />
                     <span className="font-medium">Call directly:</span>
                   </div>
-                  <a 
+                  <a
                     href={`tel:${property.contactPhoneNumber}`}
                     className="text-blue-600 hover:text-blue-700 font-semibold"
                   >
@@ -389,68 +432,98 @@ export default function PropertyDetails() {
       </div>
 
       {/* Contact Form Modal */}
-      {showContactForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg max-w-md w-full p-6">
-            <h3 className="text-xl font-bold text-gray-800 mb-4">Contact Property Owner</h3>
-            <form onSubmit={handleContactSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Your Name</label>
-                <input
-                  type="text"
-                  value={contactForm.name}
-                  onChange={(e) => setContactForm({...contactForm, name: e.target.value})}
-                  required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Your Email</label>
-                <input
-                  type="email"
-                  value={contactForm.email}
-                  onChange={(e) => setContactForm({...contactForm, email: e.target.value})}
-                  required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Message</label>
-                <textarea
-                  value={contactForm.message}
-                  onChange={(e) => setContactForm({...contactForm, message: e.target.value})}
-                  required
-                  rows={4}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="I'm interested in this property..."
-                />
-              </div>
-              <div className="flex space-x-4">
-                <button
-                  type="button"
-                  onClick={() => setShowContactForm(false)}
-                  className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  Send Message
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <AnimatePresence>
+        {showContactForm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
+            style={{
+              backgroundImage: "url('/images/sgnew.jpg')",
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              backgroundBlendMode: 'overlay',
+              backgroundColor: 'rgba(0, 0, 0, 0.75)'
+            }}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              transition={{ type: "spring", duration: 0.5 }}
+              className="bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl relative max-w-md w-full p-8 border border-white/20"
+            >
+              <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">Contact Property Owner</h3>
+              <form onSubmit={handleContactSubmit} className="space-y-5">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Your Name</label>
+                  <input
+                    type="text"
+                    value={contactForm.name}
+                    onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })}
+                    required
+                    className="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    placeholder="John Doe"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Your Email</label>
+                  <input
+                    type="email"
+                    value={contactForm.email}
+                    onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
+                    required
+                    className="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    placeholder="john@example.com"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Message</label>
+                  <textarea
+                    value={contactForm.message}
+                    onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
+                    required
+                    rows={4}
+                    className="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
+                    placeholder="I'm very interested in this property..."
+                  />
+                </div>
+                <div className="flex gap-4 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setShowContactForm(false)}
+                    className="flex-1 px-4 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 font-medium transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="flex-1 flex items-center justify-center px-4 py-3 bg-linear-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 font-medium shadow-md transition-all hover:shadow-lg transform hover:-translate-y-0.5 disabled:opacity-75 disabled:cursor-not-allowed disabled:transform-none"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                        Sending...
+                      </>
+                    ) : (
+                      'Send Message'
+                    )}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Footer */}
       <footer className="bg-gray-800 text-white py-12 mt-12">
         <div className="container mx-auto px-4 text-center">
           <div className="mb-6">
-            <div className="w-16 h-16 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-2xl mx-auto mb-4">
-              UN
+            <div className="w-16 h-16 relative mx-auto mb-4">
+              <img src="/logo.png" alt="Urban Nest Logo" className="object-contain w-full h-full drop-shadow-lg" />
             </div>
             <h3 className="text-xl font-bold">Urban Nest</h3>
           </div>

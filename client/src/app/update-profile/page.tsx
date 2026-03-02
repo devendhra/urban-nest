@@ -27,7 +27,7 @@ const UpdateProfile = () => {
           return;
         }
 
-        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/dashboard`, {
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/dashboard`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setUser(response.data.user);
@@ -47,7 +47,7 @@ const UpdateProfile = () => {
 
   const validateForm = () => {
     const errors = [];
-    
+
     // Validate username: minimum 3 characters
     if (user.username.trim().length < 3) {
       errors.push('Username must be at least 3 characters long');
@@ -70,16 +70,16 @@ const UpdateProfile = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     const validationErrors = validateForm();
     if (validationErrors.length > 0) {
-      alert(validationErrors.join('\n'));
+      toast.error(validationErrors.join('\n'));
       return;
     }
-    
+
     setSaving(true);
     setError('');
-    
+
     try {
       const token = localStorage.getItem('token');
       if (!token) {
@@ -87,14 +87,14 @@ const UpdateProfile = () => {
         return;
       }
 
-      const response = await axios.put(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/update-profile`, user, {
+      const response = await axios.put(`${process.env.NEXT_PUBLIC_API_URL}/api/update-profile`, user, {
         headers: { Authorization: `Bearer ${token}` },
       });
-  
+
       if (response.data.token) {
         localStorage.setItem('token', response.data.token);
       }
-  
+
       toast.success('Profile updated successfully');
       router.push('/dashboard');
     } catch (error) {
@@ -123,13 +123,13 @@ const UpdateProfile = () => {
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-white rounded-lg shadow-sm p-8">
           <h2 className="text-3xl font-bold text-gray-900 mb-8">Update Profile</h2>
-          
+
           {error && (
             <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
               <p className="text-red-600">{error}</p>
             </div>
           )}
-          
+
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
@@ -182,9 +182,14 @@ const UpdateProfile = () => {
               <button
                 type="submit"
                 disabled={saving}
-                className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white py-3 px-6 rounded-lg font-medium transition-colors"
+                className="flex-1 flex items-center justify-center bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed text-white py-3 px-6 rounded-lg font-medium transition-colors"
               >
-                {saving ? 'Updating Profile...' : 'Update Profile'}
+                {saving ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                    Updating Profile...
+                  </>
+                ) : 'Update Profile'}
               </button>
               <button
                 type="button"
