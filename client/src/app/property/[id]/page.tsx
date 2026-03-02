@@ -139,7 +139,7 @@ export default function PropertyDetails() {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/contact-owner`, {
+      await axios.post(`/api/contact-owner`, {
         ...contactForm,
         ownerEmail: property?.contactEmail,
         propertyName: property?.name
