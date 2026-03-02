@@ -37,6 +37,7 @@ export default function Home() {
 
   useEffect(() => {
     const fetchUser = async () => {
+      //fetching user
       try {
         const token = localStorage.getItem('token');
         if (!token) {
