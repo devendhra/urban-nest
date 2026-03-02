@@ -19,7 +19,9 @@ exports.contactOwner = async (req, res) => {
   try {
     console.log(' Setting up email transporter...');
     const transporter = nodemailer.createTransport({
-      service: 'gmail',
+      host: 'smtp.gmail.com',
+      port: 465,
+      secure: true,
       auth: {
         user: process.env.EMAIL_USER || 'devadvahdmmd@gmail.com',
         pass: process.env.EMAIL_PASS || 'gppfqopawuasjevb',
